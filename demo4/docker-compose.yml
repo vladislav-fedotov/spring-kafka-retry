@@ -1,0 +1,33 @@
+version: '3.3'
+services:
+  toy-zookeeper:
+    image: 'wurstmeister/zookeeper:latest'
+    ports:
+      - '22185:2181'
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+  toy-kafka:
+    image: 'wurstmeister/kafka:latest'
+    ports:
+      - '29096:9092'
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: toy-zookeeper:2181 # internal port of zookeeper
+
+      # this list passed back to application and AdminClient inside app will try to connect to by these urls
+      KAFKA_ADVERTISED_LISTENERS: >-
+        INNER://localhost:29096,
+        OUTER://localhost:29096
+
+      KAFKA_LISTENERS: >-
+        INNER://toy-kafka:9092,
+        OUTER://localhost:29096
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
+        INNER:PLAINTEXT,
+        OUTER:PLAINTEXT
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: INNER
+
+    depends_on:
+      - toy-zookeeper
